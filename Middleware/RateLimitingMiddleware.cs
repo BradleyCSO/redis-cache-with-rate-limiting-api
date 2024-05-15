@@ -7,7 +7,7 @@ public class RateLimitingMiddleware (IHttpClientFactory httpClientFactory, Reque
     public async Task InvokeAsync(HttpContext context)
     {
         HttpRequestMessage? httpRequestMessage = new HttpRequestMessage(
-            HttpMethod.Get, $"http://localhost:5170{context.Request.Path.Value}");
+            HttpMethod.Get, $"http://localhost:5001{context.Request.Path.Value}");
 
         HttpClient? httpClient = httpClientFactory.CreateClient();
 
@@ -18,7 +18,7 @@ public class RateLimitingMiddleware (IHttpClientFactory httpClientFactory, Reque
             context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
             await context.Response.WriteAsync("Too many requests!");
         }
-        else
-            await next(context);
+        
+        await next(context);
     }
 }

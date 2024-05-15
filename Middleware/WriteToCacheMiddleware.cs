@@ -6,9 +6,12 @@ public class WriteToCacheMiddleware(IHttpClientFactory httpClientFactory, Reques
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        // Write to cache
+        // Only concerns GET requests, handle this as-is
+        if (context.Request.Method != HttpMethods.Get)
+            await next(context);
+
         HttpRequestMessage? httpRequestMessage = new HttpRequestMessage(
-            HttpMethod.Post, $"http://localhost:5169{context.Request.Path.Value}");
+            HttpMethod.Post, $"http://localhost:5000{context.Request.Path.Value}");
 
         HttpClient? httpClient = httpClientFactory.CreateClient();
 
