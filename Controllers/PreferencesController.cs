@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using PreferencesApi.Models.Requests;
 using PreferencesApi.Models.Responses;
 using PreferencesApi.Services;
+using RedisCacheWithRateLimitingWebAPI.Exceptions;
 
 namespace PreferencesApi.Controllers;
 
@@ -18,6 +19,10 @@ public class PreferencesController(IDatabaseService databaseService, ILogger<Pre
 
             if (createPreferenceAsync != null)
                 return new ObjectResult(new { createPreferenceAsync }) { StatusCode = 201 };
+        }
+        catch (PreferencesConflictException)
+        {
+            return new StatusCodeResult(409);
         }
         catch (Exception ex)
         {

@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using PreferencesApi.Models.Requests;
 using PreferencesApi.Models.Responses;
+using RedisCacheWithRateLimitingWebAPI.Exceptions;
 
 namespace PreferencesApi.Services;
 
@@ -60,16 +61,19 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
 
             return createdUserId != null ? Convert.ToInt32(createdUserId) : null;
         }
+        catch (PostgresException alreadyExistsException) when (alreadyExistsException.SqlState == "23505")
+        {
+            throw new PreferencesConflictException($"A preference record already exists for {alreadyExistsException.ConstraintName}");
+        }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating preference");
+            throw new PreferencesBadRequestException("Bad request");
         }
         finally
         {
             await connection.CloseAsync();
         }
-
-        return null;
     }
 
     public async Task<int?> UpdatePreferenceAsync(UpdatePreferenceRequest updatePreferenceRequest)
@@ -89,7 +93,6 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
                 "categoryId = @categoryId " +
                 "WHERE id = @id " +
                 "RETURNING id", connection);
-
 
             if (updatePreferenceRequest.Region != null)
                 query.Parameters.AddWithValue("@region", updatePreferenceRequest.Region);
@@ -115,60 +118,83 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
         catch (Exception ex)
         {
             logger.LogError(ex, "Error creating preference");
+            throw new PreferencesBadRequestException("Bad request");
         }
         finally
         {
             await connection.CloseAsync();
         }
-
-        return null;
     }
 
     public async Task<List<GetPreferencesResponse>> GetPreferencesAsync(GetPreferencesRequest getPreferencesRequest)
     {
-        await connection.OpenAsync();
-
-        NpgsqlCommand query = new NpgsqlCommand("SELECT * FROM preferences WHERE region = @region", connection);
-        query.Parameters.AddWithValue("region", getPreferencesRequest.Region);
-
-        NpgsqlDataReader reader = await query.ExecuteReaderAsync();
-        List<GetPreferencesResponse> listOfPreferences = new List<GetPreferencesResponse>();
-
-        while (reader.Read())
+        try
         {
-            listOfPreferences.Add(new GetPreferencesResponse
+            await connection.OpenAsync();
+
+            NpgsqlCommand query = new NpgsqlCommand("SELECT * FROM preferences WHERE region = @region", connection);
+            query.Parameters.AddWithValue("region", getPreferencesRequest.Region);
+
+            NpgsqlDataReader reader = await query.ExecuteReaderAsync();
+            List<GetPreferencesResponse> listOfPreferences = new List<GetPreferencesResponse>();
+
+            while (reader.Read())
             {
-                Id = Convert.ToInt32(reader["id"]),
-                Region = reader["region"].ToString(),
-                PublicName = reader["publicName"].ToString(),
-                PrivateName = reader["privateName"].ToString(),
-                IsPreference = Convert.ToBoolean(reader["isPreference"]),
-                Order = reader["ordering"].ToString(),
-                IsPublic = Convert.ToBoolean(reader["isPublic"]),
-                CategoryId = Convert.ToInt32(reader["categoryId"]),
-            });
+                listOfPreferences.Add(new GetPreferencesResponse
+                {
+                    Id = Convert.ToInt32(reader["id"]),
+                    Region = reader["region"].ToString(),
+                    PublicName = reader["publicName"].ToString(),
+                    PrivateName = reader["privateName"].ToString(),
+                    IsPreference = Convert.ToBoolean(reader["isPreference"]),
+                    Order = reader["ordering"].ToString(),
+                    IsPublic = Convert.ToBoolean(reader["isPublic"]),
+                    CategoryId = Convert.ToInt32(reader["categoryId"]),
+                });
+            }
+
+            await connection.CloseAsync();
+
+            return listOfPreferences;
         }
-
-        await connection.CloseAsync();
-
-        return listOfPreferences;
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating preference");
+            throw new PreferencesBadRequestException("Bad request");
+        }
+        finally
+        {
+            await connection.CloseAsync();
+        }
     }
 
     public async Task<bool> DeletePreferenceAsync(DeletePreferenceRequest deletePreferenceRequest)
     {
-        await connection.OpenAsync();
+        try
+        {
+            await connection.OpenAsync();
 
-        NpgsqlCommand query = new NpgsqlCommand("DELETE FROM preferences WHERE region = @region AND id = @id", connection);
-        query.Parameters.AddWithValue("region", deletePreferenceRequest.Region);
-        query.Parameters.AddWithValue("id", deletePreferenceRequest.Id);
+            NpgsqlCommand query = new NpgsqlCommand("DELETE FROM preferences WHERE region = @region AND id = @id", connection);
+            query.Parameters.AddWithValue("region", deletePreferenceRequest.Region);
+            query.Parameters.AddWithValue("id", deletePreferenceRequest.Id);
 
-        int affectedRows = await query.ExecuteNonQueryAsync();
+            int affectedRows = await query.ExecuteNonQueryAsync();
 
-        await connection.CloseAsync();
+            await connection.CloseAsync();
 
-        // Check if any rows were affected
-        bool isDeleted = affectedRows > 0;
+            // Check if any rows were affected
+            bool isDeleted = affectedRows > 0;
 
-        return isDeleted;
+            return isDeleted;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error creating preference");
+            throw new PreferencesBadRequestException("Bad request");
+        }
+        finally
+        {
+            await connection.CloseAsync();
+        }
     }
 }
