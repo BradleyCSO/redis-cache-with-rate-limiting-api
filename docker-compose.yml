@@ -55,7 +55,7 @@ services:
         context: ./RedisCacheAPI
         dockerfile: Dockerfile
     ports:
-      - "5000:80"
+      - "5000:5000"
     depends_on:
       - redis
   microservice-redisratelimitapi:
@@ -64,7 +64,7 @@ services:
         context: ./RedisRateLimitAPI
         dockerfile: Dockerfile
     ports:
-      - "5001:80"
+      - "5001:5000"
     depends_on:
       - redis
 
