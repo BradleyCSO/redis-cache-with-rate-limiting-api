@@ -1,8 +1,4 @@
 ﻿namespace PreferencesApi.Models.Requests;
-
-/// <summary>
-/// https://developer.dotdigital.com/reference/create-preference
-/// </summary>
 public class CreatePreferenceRequest {
     public required string Region { get; set; }
 

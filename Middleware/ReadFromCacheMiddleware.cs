@@ -6,20 +6,16 @@ public class ReadFromCacheMiddleware(IHttpClientFactory httpClientFactory, Reque
 {
     public async Task InvokeAsync(HttpContext context)
     {
-        // Only concerns GET requests, handle this as-is
-        if (context.Request.Method != HttpMethods.Get)
-            await next(context);
-
-        HttpRequestMessage? httpRequestMessage = new HttpRequestMessage(
-            HttpMethod.Get, $"http://localhost:5000{context.Request.Path.Value}");
+        HttpRequestMessage? httpRequestMessage = new HttpRequestMessage
+            (HttpMethod.Get, $"http://localhost:5169{context.Request.Path.Value}{context.Request.QueryString}");
 
         HttpClient? httpClient = httpClientFactory.CreateClient();
 
         HttpResponseMessage? response = await httpClient.SendAsync(httpRequestMessage);
 
         if (response.StatusCode == HttpStatusCode.OK)
-            await context.Response.WriteAsJsonAsync(response.Content); // Write the response we got from the cache off the bat
-
-        await next(context); // Go to the next RateLimiting middleware in the pipeline
+            await context.Response.WriteAsJsonAsync(response.Content.ToString()); // Short circuit: write the response we got from the cache off the bat
+        else
+            await next(context); // Go to the next RateLimiting middleware in the pipeline
     }
 }
