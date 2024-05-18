@@ -1,7 +1,6 @@
 using Npgsql;
 using PreferencesApi.Middleware;
 using PreferencesApi.Services;
-using RedisCacheWithRateLimitingWebAPI.Filters;
 
 namespace PreferencesApi;
 
@@ -46,5 +45,5 @@ public class Startup(IConfiguration configuration)
         {
             endpoints.MapControllers();
         });
-		}
+	}
 }

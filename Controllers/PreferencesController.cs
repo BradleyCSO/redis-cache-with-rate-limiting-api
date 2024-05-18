@@ -3,7 +3,6 @@ using PreferencesApi.Models.Requests;
 using PreferencesApi.Models.Responses;
 using PreferencesApi.Services;
 using RedisCacheWithRateLimitingWebAPI.Exceptions;
-using RedisCacheWithRateLimitingWebAPI.Filters;
 
 namespace PreferencesApi.Controllers;
 

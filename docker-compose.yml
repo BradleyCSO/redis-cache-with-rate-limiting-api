@@ -49,22 +49,23 @@ services:
       node_net:
         ipv4_address: 172.28.1.4
   
-  microservice-rediscacheapi:
-    tty: true
-    build:
-        context: ./RedisCacheAPI
-        dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    depends_on:
-      - redis
   microservice-redisratelimitapi:
     tty: true
     build:
         context: ./RedisRateLimitAPI
         dockerfile: Dockerfile
     ports:
-      - "5001:5000"
+      - "5170"
+    depends_on:
+      - redis
+
+  microservice-rediscacheapi:
+    tty: true
+    build:
+        context: ./RedisCacheAPI
+        dockerfile: Dockerfile
+    ports:
+      - "5169:5169"
     depends_on:
       - redis
 
