@@ -1,8 +1,8 @@
 [submodule "RedisCacheAPI"]
 	path = RedisCacheAPI
 	url = https://github.com/BradleyCSO/RedisCacheAPI
-	branch = develop
+	branch = master
 [submodule "RedisRateLimitAPI"]
 	path = RedisRateLimitAPI
 	url = https://github.com/BradleyCSO/RedisRateLimitAPI
-	branch = develop
+	branch = master
