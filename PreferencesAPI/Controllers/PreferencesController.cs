@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
-using PreferencesApi.Models.Requests;
-using PreferencesApi.Models.Responses;
-using PreferencesApi.Services;
-using RedisCacheWithRateLimitingWebAPI.Exceptions;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Exceptions;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Requests;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Responses;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Services;
 
-namespace PreferencesApi.Controllers;
+namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Controllers;
 
 [ApiController]
 [Route("[controller]")]

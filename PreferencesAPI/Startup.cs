@@ -1,8 +1,8 @@
 using Npgsql;
-using PreferencesApi.Middleware;
-using PreferencesApi.Services;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Middleware;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Services;
 
-namespace PreferencesApi;
+namespace RedisCacheWithRateLimitingWebAPI.MainAPI;
 
 public class Startup(IConfiguration configuration)
 {
@@ -32,18 +32,18 @@ public class Startup(IConfiguration configuration)
         IDatabaseService databaseService = scope.ServiceProvider.GetRequiredService<IDatabaseService>();
         databaseService.CreatePreferencesTableIfNotExists();
         scope.Dispose();
-                     
-        app.UseWhen(httpContext => httpContext.Request.Method == "GET",
-            builder => builder.UseMiddleware<ReadFromCacheMiddleware>());
 
         app.UseWhen(httpContext => httpContext.Request.Method == "GET",
+            builder => builder.UseMiddleware<ReadFromCacheMiddleware>());
+        app.UseMiddleware<RateLimitingMiddleware>();
+        app.UseWhen(httpContext => httpContext.Request.Method == "GET",
             builder => builder.UseMiddleware<ResponseCachingMiddleware>());
-				
+
         app.UseRouting();
 
         app.UseEndpoints(endpoints =>
         {
             endpoints.MapControllers();
         });
-	}
+    }
 }

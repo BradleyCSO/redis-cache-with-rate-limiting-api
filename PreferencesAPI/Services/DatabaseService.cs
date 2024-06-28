@@ -1,9 +1,9 @@
 ﻿using Npgsql;
-using PreferencesApi.Models.Requests;
-using PreferencesApi.Models.Responses;
-using RedisCacheWithRateLimitingWebAPI.Exceptions;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Exceptions;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Requests;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Responses;
 
-namespace PreferencesApi.Services;
+namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Services;
 
 public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseService> logger) : IDatabaseService
 {
@@ -50,14 +50,12 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
             query.Parameters.AddWithValue("region", createPreferenceRequest.Region);
             query.Parameters.AddWithValue("publicName", createPreferenceRequest.PublicName);
             query.Parameters.AddWithValue("privateName", createPreferenceRequest.PrivateName);
-            query.Parameters.AddWithValue("isPreference", createPreferenceRequest.IsPreference);
-            query.Parameters.AddWithValue("ordering", createPreferenceRequest.Ordering);
-            query.Parameters.AddWithValue("isPublic", createPreferenceRequest.IsPublic);
-            query.Parameters.AddWithValue("categoryId", createPreferenceRequest.CategoryId);
+            query.Parameters.AddWithValue("isPreference", createPreferenceRequest.IsPreference ?? false);
+            query.Parameters.AddWithValue("ordering", createPreferenceRequest.Ordering ?? "top");
+            query.Parameters.AddWithValue("isPublic", createPreferenceRequest.IsPublic ?? false);
+            query.Parameters.AddWithValue("categoryId", createPreferenceRequest.CategoryId ?? 0);
 
             object? createdUserId = await query.ExecuteScalarAsync();
-
-            await connection.CloseAsync();
 
             return createdUserId != null ? Convert.ToInt32(createdUserId) : null;
         }
@@ -94,15 +92,9 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
                 "WHERE id = @id " +
                 "RETURNING id", connection);
 
-            if (updatePreferenceRequest.Region != null)
-                query.Parameters.AddWithValue("@region", updatePreferenceRequest.Region);
-
-            if (updatePreferenceRequest.PublicName != null)
-                query.Parameters.AddWithValue("@publicName", updatePreferenceRequest.PublicName);
-
-            if (updatePreferenceRequest.PrivateName != null)
-                query.Parameters.AddWithValue("@privateName", updatePreferenceRequest.PrivateName);
-
+            query.Parameters.AddWithValue("@region", updatePreferenceRequest.Region ?? throw new InvalidOperationException());
+            query.Parameters.AddWithValue("@publicName", updatePreferenceRequest.PublicName ?? throw new InvalidOperationException());
+            query.Parameters.AddWithValue("@privateName", updatePreferenceRequest.PrivateName ?? throw new InvalidOperationException());
             query.Parameters.AddWithValue("@isPreference", updatePreferenceRequest.IsPreference ?? false);
             query.Parameters.AddWithValue("@ordering", updatePreferenceRequest.Ordering ?? "0");
             query.Parameters.AddWithValue("@isPublic", updatePreferenceRequest.IsPublic ?? false);
@@ -110,8 +102,6 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
             query.Parameters.AddWithValue("@id", updatePreferenceRequest.Id);
 
             object? updatedPreferenceId = await query.ExecuteScalarAsync();
-
-            await connection.CloseAsync();
 
             return updatedPreferenceId != null ? Convert.ToInt32(updatedPreferenceId) : null;
         }
@@ -138,7 +128,7 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
             NpgsqlDataReader reader = await query.ExecuteReaderAsync();
             List<GetPreferencesResponse> listOfPreferences = new List<GetPreferencesResponse>();
 
-            while (reader.Read())
+            while (await reader.ReadAsync())
             {
                 listOfPreferences.Add(new GetPreferencesResponse
                 {
@@ -152,8 +142,6 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
                     CategoryId = Convert.ToInt32(reader["categoryId"]),
                 });
             }
-
-            await connection.CloseAsync();
 
             return listOfPreferences;
         }
@@ -179,8 +167,6 @@ public class DatabaseService(NpgsqlConnection connection, ILogger<DatabaseServic
             query.Parameters.AddWithValue("id", deletePreferenceRequest.Id);
 
             int affectedRows = await query.ExecuteNonQueryAsync();
-
-            await connection.CloseAsync();
 
             // Check if any rows were affected
             bool isDeleted = affectedRows > 0;

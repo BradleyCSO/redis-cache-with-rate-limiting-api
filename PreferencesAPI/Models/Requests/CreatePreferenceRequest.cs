@@ -1,12 +1,14 @@
-﻿namespace PreferencesApi.Models.Requests;
-public class CreatePreferenceRequest {
+﻿namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Requests;
+
+public class CreatePreferenceRequest
+{
     public required string Region { get; set; }
 
     public required string PublicName { get; set; }
 
     public required string PrivateName { get; set; }
 
-    public bool? IsPreference { get; set; } 
+    public bool? IsPreference { get; set; }
 
     public string? Ordering { get; set; }
 

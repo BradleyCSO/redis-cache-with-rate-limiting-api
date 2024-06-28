@@ -1,8 +1,8 @@
 ﻿using System.Net;
 
-namespace PreferencesApi.Middleware;
+namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Middleware;
 
-public class RateLimitingMiddleware (IHttpClientFactory httpClientFactory, RequestDelegate next)
+public class RateLimitingMiddleware(IHttpClientFactory httpClientFactory, RequestDelegate next)
 {
     public async Task InvokeAsync(HttpContext context)
     {

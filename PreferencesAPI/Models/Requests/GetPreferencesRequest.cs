@@ -1,4 +1,4 @@
-﻿namespace PreferencesApi.Models.Requests;
+﻿namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Requests;
 
 public class GetPreferencesRequest
 {

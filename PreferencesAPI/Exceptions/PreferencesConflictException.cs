@@ -1,4 +1,4 @@
-﻿namespace RedisCacheWithRateLimitingWebAPI.Exceptions
+﻿namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Exceptions
 {
     public class PreferencesConflictException : Exception
     {

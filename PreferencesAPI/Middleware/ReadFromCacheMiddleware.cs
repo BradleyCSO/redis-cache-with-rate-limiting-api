@@ -1,6 +1,4 @@
-﻿using System.Net;
-
-namespace PreferencesApi.Middleware;
+﻿namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Middleware;
 
 public class ReadFromCacheMiddleware(IHttpClientFactory httpClientFactory, RequestDelegate next)
 {
@@ -13,9 +11,12 @@ public class ReadFromCacheMiddleware(IHttpClientFactory httpClientFactory, Reque
 
         HttpResponseMessage? response = await httpClient.SendAsync(httpRequestMessage);
 
-        if (response.StatusCode == HttpStatusCode.OK)
-            await context.Response.WriteAsJsonAsync(response.Content.ToString()); // Short circuit: write the response we got from the cache off the bat
+        if (response.IsSuccessStatusCode)
+        {
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsync(await response.Content.ReadAsStringAsync(), System.Text.Encoding.UTF8);
+        }
         else
-            await next(context); // Go to the next RateLimiting middleware in the pipeline
+            await next(context); // Go to the next middleware in the pipeline
     }
 }

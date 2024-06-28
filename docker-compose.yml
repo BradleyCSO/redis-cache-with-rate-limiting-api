@@ -1,4 +1,3 @@
-version: '3.8'
 services:
   postgres:
     image: postgres:latest
@@ -25,7 +24,7 @@ services:
 
   main-api:
     build:
-        context: .
+        context: ./PreferencesAPI
         dockerfile: Dockerfile
     image: redis-rate-limited-web-api:latest
     container_name: redis-rate-limited-api-app
@@ -55,7 +54,7 @@ services:
         context: ./RedisRateLimitAPI
         dockerfile: Dockerfile
     ports:
-      - "5170"
+      - "5170:5170"
     depends_on:
       - redis
 

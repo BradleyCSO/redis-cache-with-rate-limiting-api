@@ -1,7 +1,7 @@
-﻿using PreferencesApi.Models.Requests;
-using PreferencesApi.Models.Responses;
+﻿using RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Requests;
+using RedisCacheWithRateLimitingWebAPI.MainAPI.Models.Responses;
 
-namespace PreferencesApi.Services;
+namespace RedisCacheWithRateLimitingWebAPI.MainAPI.Services;
 
 public interface IDatabaseService
 {

@@ -1,4 +1,4 @@
-﻿using PreferencesApi;
+﻿using RedisCacheWithRateLimitingWebAPI.MainAPI;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 Startup startup = new Startup(builder.Configuration);
