@@ -1,0 +1,80 @@
+services:
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydb
+    ports:
+      - "5432:5432"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: always
+    environment:
+        PGADMIN_DEFAULT_EMAIL: admin@pgadmin.com
+        PGADMIN_DEFAULT_PASSWORD: password
+        PGADMIN_LISTEN_PORT: 80
+    ports:
+        - 5555:80
+    volumes:
+        - pgadmin:/var/lib/pgadmin
+    depends_on:
+        - postgres
+
+  main-api:
+    build:
+        context: ./PreferencesAPI
+        dockerfile: Dockerfile
+    image: redis-rate-limited-web-api:latest
+    container_name: redis-rate-limited-api-app
+    hostname: redis-rate-limited-web-api-hostname
+    ports:
+      - "80:80"
+    depends_on:
+      - postgres
+
+  redis:
+    image: "redis:alpine"
+    command: redis-server
+    ports:
+     - "6379:6379"
+    volumes:
+     - $PWD/redis-data:/var/lib/redis
+     - $PWD/redis.conf:/usr/local/etc/redis/redis.conf
+    environment:
+     - REDIS_REPLICATION_MODE=master
+    networks:
+      node_net:
+        ipv4_address: 172.28.1.4
+  
+  microservice-redisratelimitapi:
+    tty: true
+    build:
+        context: ./RedisRateLimitAPI
+        dockerfile: Dockerfile
+    ports:
+      - "5170:5170"
+    depends_on:
+      - redis
+
+  microservice-rediscacheapi:
+    tty: true
+    build:
+        context: ./RedisCacheAPI
+        dockerfile: Dockerfile
+    ports:
+      - "5169:5169"
+    depends_on:
+      - redis
+
+volumes:
+    postgres:
+    pgadmin:
+
+networks:
+  node_net:
+    ipam:
+      driver: default
+      config:
+        - subnet: 172.28.0.0/16 
